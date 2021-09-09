@@ -153,71 +153,6 @@ Resources:
           ToPort: 80
           SourceSecurityGroupId: !Ref WebAlbServerSecurityGroup
 
-  WebServer:
-    Type: AWS::EC2::Instance
-    Properties:
-      InstanceType: t3.small
-      BlockDeviceMappings:
-        - DeviceName: /dev/xvda
-          Ebs:
-            VolumeType: gp3
-            VolumeSize: 8
-            DeleteOnTermination: true
-            Encrypted: true
-      SubnetId: !Ref ProtectedSubnet1
-      SecurityGroupIds:
-        - !Ref WebAsgSecurityGroup
-      ImageId: !Ref BaseAMI
-      IamInstanceProfile: !Ref WebProfile
-      KeyName: !Ref KeyPairWeb
-      DisableApiTermination: true
-      EbsOptimized: true
-      UserData: 
-        Fn::Base64: |
-            #cloud-config
-            package_update: true
-            package_upgrade: true
-            runcmd:
-            - yum update -y
-            - yum install httpd -y
-            - service httpd start
-            - chkconfig httpd on
-            - echo "hoge" > /var/www/html/index.html
-            - [ sh, -c, "rpm -Uvh https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm" ]
-            - /opt/aws/amazon-cloudwatch-agent/bin/config-translator --input /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json --output /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.toml --mode ec2
-            -  /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start
-            write_files:
-            - path: /var/www/html/index.html
-              permissions: 0644
-              owner: root
-              content: |
-                hoge.html
-            - path: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-              owner: root
-              group: root
-              mode: '000600'
-              content: |
-                {
-                  "logs": {
-                    "logs_collected": {
-                      "files": {
-                        "collect_list": [
-                          {
-                            "file_path": "/var/log/httpd/access_log",
-                            "log_group_name": "/var/log/httpd/access_log",
-                            "log_stream_name": "{instance_id}"
-                          },
-                          {
-                            "file_path": "/var/log/httpd/error_log",
-                            "log_group_name": "/var/log/httpd/error_log",
-                            "log_stream_name": "{instance_id}"
-                          }
-                        ]
-                      }
-                    }
-                  }
-                }
-
   WebProfile: 
     Type: AWS::IAM::InstanceProfile
     Properties: 
@@ -284,3 +219,68 @@ Resources:
       TargetType: instance
       Targets:
         - Id: !Ref WebServer
+
+  WebServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.small
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp3
+            VolumeSize: 8
+            DeleteOnTermination: true
+            Encrypted: true
+      SubnetId: !Ref ProtectedSubnet1
+      SecurityGroupIds:
+        - !Ref WebAsgSecurityGroup
+      ImageId: !Ref BaseAMI
+      IamInstanceProfile: !Ref WebProfile
+      KeyName: !Ref KeyPairWeb
+      DisableApiTermination: false
+      EbsOptimized: true
+      UserData: 
+        Fn::Base64: |
+            #cloud-config
+            package_update: true
+            package_upgrade: true
+            runcmd:
+            - yum update -y
+            - yum install httpd -y
+            - service httpd start
+            - chkconfig httpd on
+            - echo "hoge" > /var/www/html/index.html
+            - [ sh, -c, "rpm -Uvh https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm" ]
+            - /opt/aws/amazon-cloudwatch-agent/bin/config-translator --input /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json --output /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.toml --mode ec2
+            -  /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start
+            write_files:
+            - path: /var/www/html/index.html
+              permissions: 0644
+              owner: root
+              content: |
+                hoge.html
+            - path: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+              owner: root
+              group: root
+              mode: '000600'
+              content: |
+                {
+                  "logs": {
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/httpd/access_log",
+                            "log_group_name": "/var/log/httpd/access_log",
+                            "log_stream_name": "{instance_id}"
+                          },
+                          {
+                            "file_path": "/var/log/httpd/error_log",
+                            "log_group_name": "/var/log/httpd/error_log",
+                            "log_stream_name": "{instance_id}"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
