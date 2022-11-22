@@ -141,6 +141,10 @@ Resources:
             FromPort: 80
             ToPort: 80
             CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            CidrIp: 0.0.0.0/0
   WebAsgSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
@@ -239,6 +243,9 @@ Resources:
       KeyName: !Ref KeyPairWeb
       DisableApiTermination: false
       EbsOptimized: true
+      Tags:
+        - Key: HogeTag1
+          Value: hoge
       UserData: 
         Fn::Base64: |
             #cloud-config
