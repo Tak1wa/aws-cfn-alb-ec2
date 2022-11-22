@@ -244,8 +244,8 @@ Resources:
       DisableApiTermination: false
       EbsOptimized: true
       Tags:
-        - Key: HogeTag1
-          Value: hoge
+        - Key: key1
+          Value: value1
       UserData: 
         Fn::Base64: |
             #cloud-config
