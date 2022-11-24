@@ -250,6 +250,8 @@ Resources:
           Value: value2
         - Key: key3
           Value: value3
+        - Key: key4
+          Value: value4
       UserData: 
         Fn::Base64: |
             #cloud-config
